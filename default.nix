@@ -148,18 +148,19 @@ in rec {
     ${jq}/bin/jq -e '.scripts.prepublish' package.json >/dev/null && npm run prepublish
     ${jq}/bin/jq -e '.scripts.prepare' package.json >/dev/null && npm run prepare
   '', buildInputs ? [ ], extraEnvVars ? { }
+    , patches ? [ ]
     , extraNodeModulesArgs ? {}
     , # environment variables passed through to `npm ci`
     ... }:
     let
       inherit (npmInfo src) pname version;
       nodeModules = mkNodeModules ({
-        inherit src extraEnvVars pname version;
+        inherit src extraEnvVars pname version patches;
       } // extraNodeModulesArgs);
     in
       assert asserts.assertMsg (!(args ? packageOverrides)) "buildNpmPackage-packageOverrides is no longer supported";
       stdenv.mkDerivation ({
-      inherit pname version;
+      inherit pname version patches;
 
       configurePhase = ''
         runHook preConfigure
