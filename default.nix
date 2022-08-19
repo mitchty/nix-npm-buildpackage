@@ -84,20 +84,23 @@ let
   '';
 
 in rec {
-  mkNodeModules = { src, extraEnvVars ? { }, pname, version, buildInputs ? [] }:
+  mkNodeModules = { src, extraEnvVars ? { }, pname, version, buildInputs ? [], patches }:
     let
       packageJson = src + "/package.json";
       packageLockJson = src + "/package-lock.json";
-      info = fromJSON (readFile packageJson);
-      lock = fromJSON (readFile packageLockJson);
     in
-      assert asserts.assertMsg (versionAtLeast nodejs.version "10.20.0") "nix-npm-buildPackages requires at least npm v6.13.5";
-      # TODO: this *could* work with some more debugging
-      assert asserts.assertMsg (versionAtLeast nodejs.version "16" -> lock.lockfileVersion >= 2) "node v16 requires lockfile v2 (run npm once)";
-      # TODO: lock file version 3
-      assert asserts.assertMsg (lock.lockfileVersion <= 2) "nix-npm-buildPackage doesn't support this lock file version";
+      # assert asserts.assertMsg (versionAtLeast nodejs.version "10.20.0") "nix-npm-buildPackages requires at least npm v6.13.5";
+      # # TODO: this *could* work with some more debugging
+      # assert asserts.assertMsg (versionAtLeast nodejs.version "16" -> lock.lockfileVersion >= 2) "node v16 requires lockfile v2 (run npm once)";
+      # # TODO: lock file version 3
+      # assert asserts.assertMsg (lock.lockfileVersion <= 2) "nix-npm-buildPackage doesn't support this lock file version";
       stdenv.mkDerivation ({
       name = "${pname}-${version}-node-modules";
+
+      inherit patches;
+
+      info = fromJSON (readFile packageJson);
+      lock = fromJSON (readFile packageLockJson);
 
       buildInputs = [ nodejs jq ] ++ buildInputs;
 
